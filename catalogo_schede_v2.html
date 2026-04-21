@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalogo Schede Telefoniche</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f2ee;
+  --surface: #fdfcfb;
+  --border: #e0dbd3;
+  --border-strong: #c8c0b4;
+  --text-primary: #1a1714;
+  --text-secondary: #6b6560;
+  --text-muted: #a09890;
+  --accent: #2d4a22;
+  --accent-light: #e8f0e4;
+  --accent-mid: #4a7a38;
+  --amber: #8b5e1a;
+  --amber-light: #f5ead8;
+  --red: #7a2020;
+  --red-light: #f5e0e0;
+  --blue: #1a3a5c;
+  --blue-light: #e0ebf5;
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --font-sans: 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --radius: 6px;
+  --radius-lg: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text-primary); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+
+/* HEADER */
+.header { background: var(--accent); color: #fff; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.header-brand { display: flex; align-items: baseline; gap: 12px; }
+.header-brand h1 { font-family: var(--font-serif); font-size: 22px; font-weight: 400; color: #fff; }
+.header-brand span { font-family: var(--font-mono); font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; text-transform: uppercase; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+/* BUTTONS */
+.btn { font-family: var(--font-sans); font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: var(--radius); border: 1.5px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; white-space: nowrap; }
+.btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.btn-primary { background: #fff; color: var(--accent); border-color: #fff; }
+.btn-primary:hover { background: #e8f0e4; }
+.btn-outline { background: transparent; color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.3); }
+.btn-outline:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.5); }
+.btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
+.btn-ghost:hover { background: var(--surface); border-color: var(--border-strong); color: var(--text-primary); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* SETUP */
+#setup-screen { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 64px); padding: 32px; }
+.setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 48px; max-width: 580px; width: 100%; box-shadow: var(--shadow-md); }
+.setup-card h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 400; margin-bottom: 8px; }
+.setup-card > p { color: var(--text-secondary); margin-bottom: 28px; font-size: 14px; line-height: 1.6; }
+.setup-steps { margin-bottom: 28px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.step { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: flex-start; }
+.step:last-child { border-bottom: none; }
+.step-num { width: 22px; height: 22px; background: var(--accent); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.step-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.step-text strong { color: var(--text-primary); }
+.step-text code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border); }
+.step-text a { color: var(--accent-mid); }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 5px; }
+.form-group input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: var(--font-mono); font-size: 13px; background: var(--bg); color: var(--text-primary); transition: border-color 0.15s; }
+.form-group input:focus { outline: none; border-color: var(--accent-mid); background: var(--surface); }
+.form-group input::placeholder { color: var(--text-muted); }
+.hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+.sheets-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.btn-connect-main { width: 100%; justify-content: center; padding: 12px; font-size: 14px; background: var(--accent); color: #fff; border-color: var(--accent); margin-top: 8px; }
+.btn-connect-main:hover { background: var(--accent-mid); border-color: var(--accent-mid); }
+
+/* LAYOUT */
+#main-screen { display: none; }
+.layout { display: grid; grid-template-columns: 272px 1fr; min-height: calc(100vh - 64px); }
+
+/* SIDEBAR */
+.sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 20px 0; overflow-y: auto; position: sticky; top: 64px; height: calc(100vh - 64px); }
+.sidebar-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding: 8px 16px 4px; display: block; }
+.sidebar-section { padding: 0 16px 16px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+.stat-card .val { font-family: var(--font-mono); font-size: 18px; font-weight: 500; line-height: 1; margin-bottom: 3px; }
+.stat-card .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-card.green .val { color: var(--accent-mid); }
+.stat-card.amber .val { color: var(--amber); }
+.stat-card.red .val { color: var(--red); }
+.stat-card.blue .val { color: var(--blue); }
+.progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 12px 0 5px; }
+.progress-fill { height: 100%; background: var(--accent-mid); border-radius: 3px; transition: width 0.4s ease; }
+.progress-text { font-size: 11px; color: var(--text-secondary); text-align: right; font-family: var(--font-mono); }
+.filter-group { margin-bottom: 10px; }
+.filter-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; }
+.filter-select { width: 100%; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: var(--font-sans); font-size: 12px; background: var(--bg); color: var(--text-primary); cursor: pointer; }
+.filter-select:focus { outline: none; border-color: var(--accent-mid); }
+.genere-list { list-style: none; }
+.genere-item { padding: 7px 16px; cursor: pointer; font-size: 12px; color: var(--text-secondary); border-left: 3px solid transparent; transition: all 0.1s; display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+.genere-item:hover { background: var(--bg); color: var(--text-primary); border-left-color: var(--border-strong); }
+.genere-item.active { background: var(--accent-light); color: var(--accent); border-left-color: var(--accent); font-weight: 500; }
+.genere-item .g-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.genere-item .count { font-family: var(--font-mono); font-size: 11px; opacity: 0.6; flex-shrink: 0; }
+
+/* MAIN */
+.main { padding: 24px 28px; }
+.toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.search-wrap { flex: 1; min-width: 200px; position: relative; }
+.search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 14px; height: 14px; pointer-events: none; }
+.search-input { width: 100%; padding: 9px 12px 9px 32px; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: var(--font-sans); font-size: 13px; background: var(--surface); color: var(--text-primary); transition: border-color 0.15s; }
+.search-input:focus { outline: none; border-color: var(--accent-mid); }
+.search-input::placeholder { color: var(--text-muted); }
+.results-info { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between; }
+
+/* TABLE */
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--bg); border-bottom: 1.5px solid var(--border); }
+th { padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); cursor: pointer; user-select: none; white-space: nowrap; }
+th:hover { color: var(--text-primary); }
+th .sa { opacity: 0.4; margin-left: 3px; font-size: 9px; }
+th.sorted .sa { opacity: 1; color: var(--accent-mid); }
+td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #faf8f5; }
+td.mono { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+td.title-cell { font-weight: 500; max-width: 220px; }
+td.note-cell { color: var(--text-secondary); font-size: 12px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* BADGE */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.badge-nuova { background: var(--accent-light); color: var(--accent); }
+.badge-usata { background: var(--blue-light); color: var(--blue); }
+.badge-2a { background: var(--amber-light); color: var(--amber); }
+.badge-manca { background: var(--red-light); color: var(--red); }
+
+/* MANCOLISTA checkmarks in table */
+.chk { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; font-size: 11px; }
+.chk-yes { background: var(--red-light); color: var(--red); }
+.chk-no { color: var(--text-muted); }
+
+/* PAGINATION */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 18px 0 4px; }
+.page-btn { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--surface); font-size: 12px; cursor: pointer; color: var(--text-secondary); transition: all 0.1s; }
+.page-btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* LOADING / EMPTY */
+.loading-state { text-align: center; padding: 80px 32px; color: var(--text-muted); }
+.loading-spinner { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--accent-mid); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-state p { font-size: 14px; }
+.empty-state { text-align: center; padding: 60px 32px; }
+.empty-state h3 { font-family: var(--font-serif); font-size: 22px; font-weight: 400; margin-bottom: 8px; color: var(--text-secondary); }
+.empty-state p { font-size: 13px; color: var(--text-muted); }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(26,23,20,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.modal { background: var(--surface); border-radius: var(--radius-lg); padding: 32px; max-width: 460px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal h3 { font-family: var(--font-serif); font-size: 22px; font-weight: 400; margin-bottom: 6px; }
+.modal p { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+.pdf-options { display: grid; gap: 8px; }
+.pdf-opt { padding: 14px 16px; border: 1.5px solid var(--border); border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s; }
+.pdf-opt:hover { border-color: var(--accent-mid); background: var(--accent-light); }
+.pdf-opt.selected { border-color: var(--accent); background: var(--accent-light); }
+.pdf-opt-icon { width: 34px; height: 34px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; background: var(--bg); flex-shrink: 0; font-size: 16px; }
+.pdf-opt-text strong { display: block; font-size: 13px; margin-bottom: 2px; }
+.pdf-opt-text span { font-size: 12px; color: var(--text-muted); }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--text-primary); color: #fff; padding: 12px 18px; border-radius: var(--radius); font-size: 13px; z-index: 300; animation: slideUp 0.2s ease; max-width: 320px; }
+.toast.error { background: var(--red); }
+.toast.success { background: var(--accent); }
+@keyframes slideUp { from { transform: translateY(8px); opacity: 0; } }
+
+/* VOL TABS */
+.vol-tabs { display: flex; gap: 2px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 3px; }
+.vol-tab { flex: 1; padding: 6px 12px; border-radius: 4px; border: none; background: transparent; font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
+.vol-tab.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    <h1>Catalogo Schede Telefoniche</h1>
+    <span id="vol-label">VOL 1 + VOL 2</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline" id="btn-pdf">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Esporta PDF
+    </button>
+    <button class="btn btn-outline" id="btn-refresh">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      Aggiorna
+    </button>
+    <button class="btn btn-primary" id="btn-signout" style="display:none">Esci</button>
+  </div>
+</header>
+
+<!-- SETUP -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <h2>Configura la connessione</h2>
+    <p>Connetti l'app al tuo Google Sheet privato tramite le API di Google. La configurazione viene salvata nel browser e non va ripetuta.</p>
+    <div class="setup-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Vai su <a href="https://console.cloud.google.com/" target="_blank">console.cloud.google.com</a>, crea un progetto e abilita <strong>Google Sheets API</strong>.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">In <strong>Credenziali → Crea ID client OAuth 2.0</strong> (tipo: Applicazione web). Aggiungi <code>null</code> agli URI di reindirizzamento autorizzati.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Incolla qui sotto il <strong>Client ID</strong> e l'<strong>ID del Google Sheet</strong> dalla URL: <code>spreadsheets/d/<strong>[ID]</strong>/edit</code></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Google OAuth Client ID</label>
+      <input type="text" id="input-client-id" placeholder="000000000000-xxxxxxxx.apps.googleusercontent.com">
+    </div>
+    <div class="form-group">
+      <label>ID Google Sheet</label>
+      <input type="text" id="input-sheet-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
+    </div>
+    <div class="sheets-row">
+      <div class="form-group">
+        <label>Nome foglio VOL 1</label>
+        <input type="text" id="input-tab1" placeholder="Collezione schede - VOL 1" value="Collezione schede - VOL 1">
+      </div>
+      <div class="form-group">
+        <label>Nome foglio VOL 2</label>
+        <input type="text" id="input-tab2" placeholder="Collezione schede - VOL 2" value="Collezione schede - VOL 2">
+      </div>
+    </div>
+    <button class="btn btn-connect-main btn" id="btn-connect">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+      Connetti e accedi con Google
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main-screen">
+  <div class="layout">
+    <aside class="sidebar">
+      <span class="sidebar-label">Panoramica</span>
+      <div class="sidebar-section">
+        <div class="stat-grid">
+          <div class="stat-card blue"><div class="val" id="stat-tot">—</div><div class="lbl">Totale</div></div>
+          <div class="stat-card green"><div class="val" id="stat-col">—</div><div class="lbl">In coll.</div></div>
+          <div class="stat-card red"><div class="val" id="stat-man">—</div><div class="lbl">Mancanti</div></div>
+          <div class="stat-card amber"><div class="val" id="stat-man-n">—</div><div class="lbl">Manc. se N.</div></div>
+        </div>
+        <div class="progress-bar" style="margin-top:14px"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+        <div class="progress-text" id="progress-text">—</div>
+      </div>
+
+      <span class="sidebar-label">Volume</span>
+      <div class="sidebar-section">
+        <div class="vol-tabs">
+          <button class="vol-tab active" data-vol="all">Tutti</button>
+          <button class="vol-tab" data-vol="1">VOL 1</button>
+          <button class="vol-tab" data-vol="2">VOL 2</button>
+        </div>
+      </div>
+
+      <span class="sidebar-label">Filtri</span>
+      <div class="sidebar-section">
+        <div class="filter-group">
+          <div class="filter-label">Stato collezione</div>
+          <select class="filter-select" id="filter-stato">
+            <option value="">Tutti</option>
+            <option value="Nuova">Nuova</option>
+            <option value="Usata">Usata</option>
+            <option value="Manca">Manca</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Mancolista</div>
+          <select class="filter-select" id="filter-manco">
+            <option value="">Tutti</option>
+            <option value="manca">✓ Manca</option>
+            <option value="manca_n">✓ Manca se nuova</option>
+            <option value="manca_cod">✓ Manca se con codici</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Sottogenere</div>
+          <select class="filter-select" id="filter-sotto"><option value="">Tutti</option></select>
+        </div>
+        <button class="btn btn-ghost" id="btn-reset" style="width:100%;justify-content:center;font-size:12px;margin-top:2px;">Azzera filtri</button>
+      </div>
+
+      <span class="sidebar-label">Genere</span>
+      <ul class="genere-list" id="genere-list"></ul>
+    </aside>
+
+    <main class="main">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" class="search-input" id="search-input" placeholder="Cerca per titolo, N. Golden, C&C, note…">
+        </div>
+        <button class="btn btn-ghost" id="btn-pdf-mancanti" style="color:var(--red);border-color:#f0c0c0;background:var(--red-light);">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          PDF Mancanti
+        </button>
+      </div>
+      <div id="content-area"></div>
+      <div class="pagination" id="pagination"></div>
+    </main>
+  </div>
+</div>
+
+<!-- PDF MODAL -->
+<div class="modal-overlay" id="pdf-modal" style="display:none">
+  <div class="modal">
+    <h3>Esporta PDF</h3>
+    <p>Scegli il contenuto da esportare.</p>
+    <div class="pdf-options">
+      <div class="pdf-opt selected" data-opt="mancanti">
+        <div class="pdf-opt-icon">📋</div>
+        <div class="pdf-opt-text"><strong>Lista mancanti completa</strong><span>Organizzata per genere/sottogenere con 3 colonne Mancolista</span></div>
+      </div>
+      <div class="pdf-opt" data-opt="vista">
+        <div class="pdf-opt-icon">🔍</div>
+        <div class="pdf-opt-text"><strong>Vista corrente filtrata</strong><span>Le schede visibili con i filtri attivi</span></div>
+      </div>
+      <div class="pdf-opt" data-opt="completo">
+        <div class="pdf-opt-icon">📚</div>
+        <div class="pdf-opt-text"><strong>Catalogo completo</strong><span>Tutte le schede di VOL 1 e VOL 2</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modal-cancel">Annulla</button>
+      <button class="btn" id="modal-confirm" style="background:var(--accent);color:#fff;border-color:var(--accent);">Genera PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── COLUMN MAPS ───────────────────────────────────────────────────────────────
+// VOL 1: Genere(0) Sottogenere(1) Golden(2) C&C(3) Titolo(4) Taglio(5)
+//        Scadenza(6) Produttore(7) Note(8) Tiratura(9)
+//        Valore nuova(10) Valore usata(11) Stato collezione(12)
+//        Magnetizzazione(13) Mancolista(14) Mancolista (N)(15) Mancolista (Codici)(16)
+//        Prezzo acquisto(17)
+//
+// VOL 2: Genere(0) Sottogenere(1) Golden(2) C&C(3) Titolo(4) Taglio(5)
+//        Emissione(6) Scadenza(7) Produttore(8) Note(9)
+//        Valore nuova(10) Valore usata(11) Stato collezione(12)
+//        Magnetizzazione(13) Mancolista(14) Mancolista (N)(15) Prezzo acquisto(16)
+
+const C = {
+  genere: 0, sottogenere: 1, golden: 2, cc: 3, titolo: 4, taglio: 5,
+  val_nuova: 10, val_usata: 11, stato: 12,
+  manca: 14, manca_n: 15
+};
+// VOL1 only: manca_cod = 16
+// VOL2 has no manca_cod
+
+const CONFIG_KEY = 'schede_v2_cfg';
+let allData = [];   // [{...row, _vol, _manca, _manca_n, _manca_cod}]
+let filtered = [];
+let currentPage = 1;
+const PAGE_SIZE = 50;
+let sortCol = null, sortDir = 1;
+let activeGenere = null;
+let activeVol = 'all';
+let pdfMode = 'mancanti';
+
+function saveConfig(cfg) { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
+function loadConfig() { try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; } catch { return {}; } }
+
+function toast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ── GAPI INIT ─────────────────────────────────────────────────────────────────
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`) && (src.includes('gsi') ? window.google?.accounts : window.gapi)) { res(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function initAuth(cfg) {
+  await Promise.all([
+    loadScript('https://apis.google.com/js/api.js'),
+    loadScript('https://accounts.google.com/gsi/client')
+  ]);
+  await new Promise(r => gapi.load('client', r));
+  await gapi.client.init({ discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'] });
+  return new Promise((resolve, reject) => {
+    const tc = google.accounts.oauth2.initTokenClient({
+      client_id: cfg.clientId,
+      scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+      callback: r => { if (r.error) reject(r); else resolve(r); }
+    });
+    tc.requestAccessToken({ prompt: 'consent' });
+  });
+}
+
+document.getElementById('btn-connect').addEventListener('click', async () => {
+  const clientId = document.getElementById('input-client-id').value.trim();
+  const sheetId  = document.getElementById('input-sheet-id').value.trim();
+  const tab1     = document.getElementById('input-tab1').value.trim() || 'Collezione schede - VOL 1';
+  const tab2     = document.getElementById('input-tab2').value.trim() || 'Collezione schede - VOL 2';
+  if (!clientId || !sheetId) { toast('Inserisci Client ID e ID del foglio', 'error'); return; }
+  const cfg = { clientId, sheetId, tab1, tab2 };
+  saveConfig(cfg);
+  try {
+    await initAuth(cfg);
+    startApp(cfg);
+  } catch(e) {
+    toast('Autenticazione fallita: ' + (e.error || e.message || JSON.stringify(e)), 'error');
+  }
+});
+
+// ── APP START ─────────────────────────────────────────────────────────────────
+async function startApp(cfg) {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
+  document.getElementById('btn-signout').style.display = 'inline-flex';
+  await loadAllData(cfg);
+}
+
+async function loadAllData(cfg) {
+  showLoading('Caricamento VOL 1…');
+  try {
+    const [r1, r2] = await Promise.all([
+      gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: cfg.sheetId, range: cfg.tab1 }),
+      gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: cfg.sheetId, range: cfg.tab2 })
+    ]);
+    const rows1 = (r1.result.values || []).slice(1).filter(r => r && r.length > 2);
+    const rows2 = (r2.result.values || []).slice(1).filter(r => r && r.length > 2);
+
+    const normalize = (row, vol) => {
+      // Boolean: Google Sheets exports TRUE/FALSE as strings
+      const b = (v) => v === true || v === 'TRUE' || v === 'VERO' || v === 1 || v === '1';
+      return {
+        _raw: row, _vol: vol,
+        genere:      (row[0] || '').trim(),
+        sottogenere: (row[1] || '').trim(),
+        golden:      (row[2] || '').toString().trim(),
+        cc:          (row[3] || '').toString().trim(),
+        titolo:      (row[4] || '').trim(),
+        taglio:      (row[5] || '').toString().trim(),
+        val_nuova:   (row[10] || '').toString().trim(),
+        val_usata:   (row[11] || '').toString().trim(),
+        stato:       (row[12] || '').trim(),
+        manca:       vol === 1 ? b(row[14]) : b(row[14]),
+        manca_n:     vol === 1 ? b(row[15]) : b(row[15]),
+        manca_cod:   vol === 1 ? b(row[16]) : false,  // VOL2 has no codici col
+        note:        vol === 1 ? (row[8] || '').trim() : (row[9] || '').trim(),
+      };
+    };
+
+    allData = [
+      ...rows1.map(r => normalize(r, 1)),
+      ...rows2.map(r => normalize(r, 2))
+    ];
+    initUI();
+    toast(`${allData.length.toLocaleString('it')} schede caricate`, 'success');
+  } catch(e) {
+    showError(e.result?.error?.message || e.message || 'Errore di caricamento');
+    toast('Errore nel caricamento', 'error');
+  }
+}
+
+function showLoading(msg = 'Caricamento…') {
+  document.getElementById('content-area').innerHTML = `
+    <div class="loading-state"><div class="loading-spinner"></div><p>${msg}</p></div>`;
+}
+function showError(msg) {
+  document.getElementById('content-area').innerHTML = `
+    <div class="empty-state"><h3>Errore</h3><p>${msg}</p></div>`;
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+function initUI() {
+  buildGenereList();
+  buildSottogenereFilter();
+  updateStats();
+  applyFilters();
+}
+
+function buildGenereList() {
+  const base = getVolFiltered();
+  const counts = {};
+  base.forEach(r => { const g = r.genere || '(—)'; counts[g] = (counts[g] || 0) + 1; });
+  const ul = document.getElementById('genere-list');
+  ul.innerHTML = `<li class="genere-item active" data-g=""><span class="g-name">(Tutti i generi)</span><span class="count">${base.length}</span></li>`;
+  Object.entries(counts).forEach(([g, c]) => {
+    const li = document.createElement('li');
+    li.className = 'genere-item'; li.dataset.g = g;
+    li.innerHTML = `<span class="g-name">${g}</span><span class="count">${c}</span>`;
+    ul.appendChild(li);
+  });
+  ul.querySelectorAll('.genere-item').forEach(li => {
+    li.addEventListener('click', () => {
+      ul.querySelectorAll('.genere-item').forEach(x => x.classList.remove('active'));
+      li.classList.add('active');
+      activeGenere = li.dataset.g || null;
+      buildSottogenereFilter();
+      applyFilters();
+    });
+  });
+}
+
+function getVolFiltered() {
+  if (activeVol === '1') return allData.filter(r => r._vol === 1);
+  if (activeVol === '2') return allData.filter(r => r._vol === 2);
+  return allData;
+}
+
+function buildSottogenereFilter() {
+  const sel = document.getElementById('filter-sotto');
+  const prev = sel.value;
+  const base = getVolFiltered().filter(r => !activeGenere || r.genere === activeGenere);
+  const sottos = [...new Set(base.map(r => r.sottogenere).filter(Boolean))].sort((a,b) => a.localeCompare(b,'it'));
+  sel.innerHTML = '<option value="">Tutti</option>';
+  sottos.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
+  if (sottos.includes(prev)) sel.value = prev;
+}
+
+function updateStats() {
+  const base = getVolFiltered();
+  const tot = base.length;
+  const col = base.filter(r => r.stato === 'Nuova' || r.stato === 'Usata').length;
+  const man = base.filter(r => r.manca).length;
+  const man_n = base.filter(r => r.manca_n).length;
+  document.getElementById('stat-tot').textContent = tot.toLocaleString('it');
+  document.getElementById('stat-col').textContent = col.toLocaleString('it');
+  document.getElementById('stat-man').textContent = man.toLocaleString('it');
+  document.getElementById('stat-man-n').textContent = man_n.toLocaleString('it');
+  const pct = tot > 0 ? Math.round(col / tot * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = pct + '% completato';
+}
+
+function applyFilters() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const stato  = document.getElementById('filter-stato').value;
+  const manco  = document.getElementById('filter-manco').value;
+  const sotto  = document.getElementById('filter-sotto').value;
+  const base   = getVolFiltered();
+
+  filtered = base.filter(r => {
+    if (activeGenere && r.genere !== activeGenere) return false;
+    if (sotto && r.sottogenere !== sotto) return false;
+    if (stato && r.stato !== stato) return false;
+    if (manco === 'manca'    && !r.manca)     return false;
+    if (manco === 'manca_n'  && !r.manca_n)   return false;
+    if (manco === 'manca_cod'&& !r.manca_cod) return false;
+    if (search) {
+      const hay = [r.titolo, r.golden, r.cc, r.note, r.sottogenere].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  if (sortCol) {
+    filtered.sort((a, b) => {
+      const va = a[sortCol] || '', vb = b[sortCol] || '';
+      const na = parseFloat(va), nb = parseFloat(vb);
+      if (!isNaN(na) && !isNaN(nb)) return (na - nb) * sortDir;
+      return va.localeCompare(vb, 'it') * sortDir;
+    });
+  }
+  currentPage = 1;
+  renderTable();
+}
+
+// ── TABLE ─────────────────────────────────────────────────────────────────────
+const TABLE_COLS = [
+  { label: 'VOL',        key: '_vol',        cls: 'mono', w: '48px' },
+  { label: 'N. Golden',  key: 'golden',      cls: 'mono', w: '80px' },
+  { label: 'C&C',        key: 'cc',          cls: 'mono', w: '70px' },
+  { label: 'Titolo',     key: 'titolo',      cls: 'title-cell', w: '' },
+  { label: 'Genere',     key: 'genere',      cls: '', w: '110px' },
+  { label: 'Sottogenere',key: 'sottogenere', cls: '', w: '120px' },
+  { label: 'Stato',      key: 'stato',       cls: '', w: '90px' },
+  { label: 'Manca',      key: 'manca',       cls: '', w: '62px' },
+  { label: 'Manca N.',   key: 'manca_n',     cls: '', w: '70px' },
+  { label: 'Manca Cod.', key: 'manca_cod',   cls: '', w: '78px' },
+  { label: 'Val. Nuova', key: 'val_nuova',   cls: 'mono', w: '80px' },
+];
+
+function renderTable() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = filtered.slice(start, start + PAGE_SIZE);
+  const ca = document.getElementById('content-area');
+  ca.innerHTML = '';
+
+  if (filtered.length === 0) {
+    ca.innerHTML = '<div class="empty-state"><h3>Nessun risultato</h3><p>Prova a modificare i filtri o la ricerca.</p></div>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  const info = document.createElement('div');
+  info.className = 'results-info';
+  info.innerHTML = `<span>${filtered.length.toLocaleString('it')} schede trovate</span><span>${start+1}–${Math.min(start+PAGE_SIZE, filtered.length)} di ${filtered.length}</span>`;
+  ca.appendChild(info);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'table-wrap';
+  const table = document.createElement('table');
+
+  // THEAD
+  const thead = document.createElement('thead');
+  const tr = document.createElement('tr');
+  TABLE_COLS.forEach(c => {
+    const th = document.createElement('th');
+    th.className = sortCol === c.key ? 'sorted' : '';
+    if (c.w) th.style.width = c.w;
+    th.innerHTML = c.label + `<span class="sa">${sortCol === c.key ? (sortDir===1?'↑':'↓') : '↕'}</span>`;
+    th.addEventListener('click', () => {
+      if (sortCol === c.key) sortDir *= -1; else { sortCol = c.key; sortDir = 1; }
+      applyFilters();
+    });
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr);
+  table.appendChild(thead);
+
+  // TBODY
+  const tbody = document.createElement('tbody');
+  page.forEach(row => {
+    const tr = document.createElement('tr');
+    TABLE_COLS.forEach(c => {
+      const td = document.createElement('td');
+      td.className = c.cls;
+      if (c.key === 'stato') {
+        const map = { 'Nuova': 'badge-nuova', 'Usata': 'badge-usata', 'Manca': 'badge-manca' };
+        td.innerHTML = `<span class="badge ${map[row.stato]||''}">${row.stato||'—'}</span>`;
+      } else if (c.key === '_vol') {
+        td.innerHTML = `<span style="font-size:11px;opacity:0.6">VOL ${row._vol}</span>`;
+      } else if (c.key === 'manca' || c.key === 'manca_n' || c.key === 'manca_cod') {
+        const v = row[c.key];
+        // VOL2 has no manca_cod
+        if (c.key === 'manca_cod' && row._vol === 2) {
+          td.innerHTML = `<span class="chk chk-no" title="N/D">—</span>`;
+        } else {
+          td.innerHTML = v
+            ? `<span class="chk chk-yes" title="Sì">✓</span>`
+            : `<span class="chk chk-no">·</span>`;
+        }
+        td.style.textAlign = 'center';
+      } else {
+        const v = row[c.key];
+        td.textContent = (v === null || v === undefined || v === '') ? '—' : v;
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  ca.appendChild(wrap);
+  renderPagination(filtered.length);
+}
+
+function renderPagination(total) {
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const pag = document.getElementById('pagination');
+  pag.innerHTML = '';
+  if (pages <= 1) return;
+  const mk = (label, page, disabled, active) => {
+    const b = document.createElement('button');
+    b.className = 'page-btn' + (active ? ' active' : '');
+    b.textContent = label; b.disabled = disabled;
+    if (!disabled) b.addEventListener('click', () => { currentPage = page; renderTable(); window.scrollTo(0,0); });
+    return b;
+  };
+  pag.appendChild(mk('‹', currentPage-1, currentPage===1, false));
+  const range = [];
+  for (let i=1; i<=pages; i++) {
+    if (i===1||i===pages||Math.abs(i-currentPage)<=2) range.push(i);
+    else if (range[range.length-1]!=='…') range.push('…');
+  }
+  range.forEach(p => {
+    if (p==='…') { const s=document.createElement('span'); s.textContent='…'; s.style.cssText='padding:0 4px;color:var(--text-muted)'; pag.appendChild(s); }
+    else pag.appendChild(mk(p,p,false,p===currentPage));
+  });
+  pag.appendChild(mk('›', currentPage+1, currentPage===pages, false));
+}
+
+// ── PDF ───────────────────────────────────────────────────────────────────────
+function generateMancantiPDF(rows) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const PW = doc.internal.pageSize.getWidth();  // 210
+  const PH = doc.internal.pageSize.getHeight(); // 297
+
+  // Raggruppa per genere → sottogenere
+  const groups = {};
+  rows.forEach(r => {
+    const g = r.genere || '(—)';
+    const s = r.sottogenere || '(—)';
+    if (!groups[g]) groups[g] = {};
+    if (!groups[g][s]) groups[g][s] = [];
+    groups[g][s].push(r);
+  });
+
+  let y = 0;
+  let pageNum = 1;
+
+  function drawHeader() {
+    doc.setFillColor(45, 74, 34);
+    doc.rect(0, 0, PW, 20, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.text('Catalogo Schede Telefoniche', 12, 9);
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    doc.text('Lista schede mancanti', 12, 15);
+    const dateStr = new Date().toLocaleDateString('it-IT');
+    doc.text(`Generato il ${dateStr} — ${rows.length} schede`, PW-12, 15, { align:'right' });
+    y = 26;
+  }
+
+  function drawPageFooter() {
+    doc.setFontSize(7); doc.setTextColor(160,160,160); doc.setFont('helvetica','normal');
+    doc.text(`Pag. ${pageNum}`, PW-12, PH-6, { align:'right' });
+  }
+
+  function checkPageBreak(needed = 6) {
+    if (y + needed > PH - 12) {
+      drawPageFooter();
+      doc.addPage();
+      pageNum++;
+      drawHeader();
+    }
+  }
+
+  drawHeader();
+
+  // Legenda
+  const legH = 10;
+  doc.setFillColor(245, 242, 238);
+  doc.rect(12, y, PW-24, legH, 'F');
+  doc.setDrawColor(200,195,190);
+  doc.rect(12, y, PW-24, legH, 'S');
+  doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(60,60,60);
+  doc.text('Legenda colonne Mancolista:', 16, y+4);
+  doc.setFont('helvetica','normal');
+  doc.text('✓ Manca = scheda assente in collezione', 65, y+4);
+  doc.text('N = manca solo se nuova', 145, y+4);
+  doc.text('Cod = manca solo se con codici (VOL 1)', 16, y+8.5);
+  y += legH + 5;
+
+  // ── Intestazione tabella globale ──
+  const colX = {
+    golden:    12,
+    titolo:    40,
+    manca:     138,
+    manca_n:   155,
+    manca_cod: 172,
+    vol:       189,
+  };
+  const tableW = PW - 24;
+
+  function drawTableHeader(firstForGroup = false) {
+    checkPageBreak(8);
+    doc.setFillColor(74, 122, 56);
+    doc.rect(colX.golden, y, tableW, 7, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+    doc.text('N. Golden', colX.golden+2, y+4.5);
+    doc.text('Titolo', colX.titolo+2, y+4.5);
+    doc.text('Manca', colX.manca, y+4.5, { align:'center' });
+    doc.text('N.', colX.manca_n, y+4.5, { align:'center' });
+    doc.text('Cod.', colX.manca_cod, y+4.5, { align:'center' });
+    doc.text('VOL', colX.vol, y+4.5, { align:'center' });
+    y += 7;
+  }
+
+  Object.keys(groups).sort().forEach(genere => {
+    // ── Intestazione genere ──
+    checkPageBreak(10);
+    doc.setFillColor(30, 48, 20);
+    doc.rect(colX.golden, y, tableW, 8, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text(genere.toUpperCase(), colX.golden+3, y+5.5);
+    y += 8;
+
+    Object.keys(groups[genere]).sort().forEach(sotto => {
+      const schede = groups[genere][sotto];
+
+      // ── Intestazione sottogenere ──
+      checkPageBreak(16);
+      doc.setFillColor(220, 235, 215);
+      doc.rect(colX.golden, y, tableW, 6.5, 'F');
+      doc.setTextColor(45, 74, 22); doc.setFontSize(8); doc.setFont('helvetica','bold');
+      doc.text(sotto, colX.golden+3, y+4.5);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(100,130,90);
+      doc.text(`(${schede.length} schede)`, PW-14, y+4.5, { align:'right' });
+      y += 6.5;
+
+      drawTableHeader();
+
+      // ── Righe ──
+      schede.forEach((r, idx) => {
+        checkPageBreak(6);
+        const rowH = 5.5;
+        if (idx % 2 === 1) {
+          doc.setFillColor(248, 245, 240);
+          doc.rect(colX.golden, y, tableW, rowH, 'F');
+        }
+
+        doc.setTextColor(30,27,24); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+        doc.text(r.golden || '—', colX.golden+2, y+3.8);
+
+        // Titolo — tronca se troppo lungo
+        const maxTitoloW = colX.manca - colX.titolo - 6;
+        let titolo = r.titolo || '—';
+        if (doc.getTextWidth(titolo) > maxTitoloW) {
+          while (doc.getTextWidth(titolo + '…') > maxTitoloW && titolo.length > 0) titolo = titolo.slice(0,-1);
+          titolo += '…';
+        }
+        doc.text(titolo, colX.titolo+2, y+3.8);
+
+        // Checkmarks centrati
+        const drawCheck = (x, val, isNA) => {
+          if (isNA) {
+            doc.setTextColor(180,180,180); doc.setFontSize(7);
+            doc.text('—', x, y+3.8, { align:'center' });
+          } else if (val) {
+            doc.setTextColor(122,32,32); doc.setFontSize(9); doc.setFont('helvetica','bold');
+            doc.text('✓', x, y+4.2, { align:'center' });
+          } else {
+            doc.setTextColor(200,195,190); doc.setFontSize(7.5);
+            doc.text('·', x, y+3.8, { align:'center' });
+          }
+          doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(30,27,24);
+        };
+
+        drawCheck(colX.manca,     r.manca,     false);
+        drawCheck(colX.manca_n,   r.manca_n,   false);
+        drawCheck(colX.manca_cod, r.manca_cod, r._vol === 2);
+
+        doc.setFontSize(7); doc.setTextColor(130,125,120);
+        doc.text(r._vol.toString(), colX.vol, y+3.8, { align:'center' });
+        doc.setFontSize(7.5); doc.setTextColor(30,27,24);
+
+        // Linea separatrice leggera
+        doc.setDrawColor(230,225,218); doc.setLineWidth(0.2);
+        doc.line(colX.golden, y+rowH, colX.golden+tableW, y+rowH);
+        y += rowH;
+      });
+
+      y += 4; // spazio dopo ogni sottogenere
+    });
+    y += 3; // spazio dopo ogni genere
+  });
+
+  drawPageFooter();
+  doc.putTotalPages && doc.putTotalPages('{total_pages_count_string}');
+  const fn = `mancolista_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fn);
+  toast('PDF mancanti generato', 'success');
+}
+
+function generateGenericPDF(rows, title, subtitle) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const PW = doc.internal.pageSize.getWidth();
+
+  doc.setFillColor(45,74,34); doc.rect(0,0,PW,20,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(13); doc.setFont('helvetica','bold');
+  doc.text('Catalogo Schede Telefoniche', 12, 9);
+  doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+  doc.text(title, 12, 15);
+  doc.text(`${new Date().toLocaleDateString('it-IT')} — ${rows.length} schede`, PW-12, 15, { align:'right' });
+
+  const body = rows.map(r => [
+    r._vol, r.golden, r.cc, r.titolo, r.genere, r.sottogenere, r.stato,
+    r.manca ? '✓' : '·', r.manca_n ? '✓' : '·',
+    r._vol === 1 ? (r.manca_cod ? '✓' : '·') : '—',
+    r.val_nuova || '—'
+  ]);
+
+  doc.autoTable({
+    startY: 24,
+    head: [['VOL','N. Golden','C&C','Titolo','Genere','Sottogenere','Stato','Manca','Manca N.','Manca Cod.','Val. Nuova']],
+    body,
+    styles: { fontSize: 7.5, cellPadding: 2, textColor: [30,27,24] },
+    headStyles: { fillColor: [74,122,56], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [245,242,238] },
+    columnStyles: {
+      0:{cellWidth:10}, 1:{cellWidth:20}, 2:{cellWidth:20},
+      3:{cellWidth:60}, 4:{cellWidth:28}, 5:{cellWidth:32},
+      6:{cellWidth:16}, 7:{cellWidth:14,halign:'center'}, 8:{cellWidth:16,halign:'center'},
+      9:{cellWidth:18,halign:'center'}, 10:{cellWidth:18}
+    },
+    margin: { left:12, right:12 },
+    didDrawPage: d => {
+      const pg = doc.internal.getCurrentPageInfo().pageNumber;
+      doc.setFontSize(7); doc.setTextColor(150,150,150);
+      doc.text(`Pag. ${pg}`, PW-12, doc.internal.pageSize.getHeight()-6, { align:'right' });
+    }
+  });
+  doc.save(`schede_${title.replace(/[^a-z0-9]/gi,'_').toLowerCase()}_${new Date().toISOString().slice(0,10)}.pdf`);
+  toast('PDF generato', 'success');
+}
+
+// ── EVENTS ────────────────────────────────────────────────────────────────────
+document.getElementById('btn-pdf-mancanti').addEventListener('click', () => {
+  const rows = allData.filter(r => r.manca || r.manca_n || r.manca_cod);
+  if (rows.length === 0) { toast('Nessuna scheda in mancolista', 'error'); return; }
+  generateMancantiPDF(rows);
+});
+
+document.getElementById('btn-pdf').addEventListener('click', () => {
+  document.getElementById('pdf-modal').style.display = 'flex';
+});
+document.getElementById('modal-cancel').addEventListener('click', () => {
+  document.getElementById('pdf-modal').style.display = 'none';
+});
+document.querySelectorAll('.pdf-opt').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.pdf-opt').forEach(x => x.classList.remove('selected'));
+    el.classList.add('selected'); pdfMode = el.dataset.opt;
+  });
+});
+document.getElementById('modal-confirm').addEventListener('click', () => {
+  document.getElementById('pdf-modal').style.display = 'none';
+  if (pdfMode === 'mancanti') {
+    const rows = allData.filter(r => r.manca || r.manca_n || r.manca_cod);
+    if (!rows.length) { toast('Nessuna scheda in mancolista', 'error'); return; }
+    generateMancantiPDF(rows);
+  } else if (pdfMode === 'vista') {
+    if (!filtered.length) { toast('Nessuna scheda nella vista corrente', 'error'); return; }
+    generateGenericPDF(filtered, 'Vista filtrata corrente');
+  } else {
+    generateGenericPDF(allData, 'Catalogo completo');
+  }
+});
+
+document.querySelectorAll('.vol-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.vol-tab').forEach(x => x.classList.remove('active'));
+    btn.classList.add('active');
+    activeVol = btn.dataset.vol;
+    activeGenere = null;
+    buildGenereList();
+    buildSottogenereFilter();
+    updateStats();
+    applyFilters();
+  });
+});
+
+document.getElementById('search-input').addEventListener('input', applyFilters);
+document.getElementById('filter-stato').addEventListener('change', applyFilters);
+document.getElementById('filter-manco').addEventListener('change', applyFilters);
+document.getElementById('filter-sotto').addEventListener('change', applyFilters);
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-stato').value = '';
+  document.getElementById('filter-manco').value = '';
+  document.getElementById('filter-sotto').value = '';
+  activeGenere = null; sortCol = null; sortDir = 1;
+  document.querySelectorAll('.genere-item').forEach((li,i) => li.classList.toggle('active', i===0));
+  buildSottogenereFilter(); applyFilters();
+});
+
+document.getElementById('btn-refresh').addEventListener('click', async () => {
+  const cfg = loadConfig();
+  if (cfg.sheetId) await loadAllData(cfg);
+});
+
+document.getElementById('btn-signout').addEventListener('click', () => {
+  try { google.accounts.oauth2.revoke(gapi.client.getToken()?.access_token, ()=>{}); } catch {}
+  localStorage.removeItem(CONFIG_KEY);
+  location.reload();
+});
+
+// Restore config
+(function() {
+  const cfg = loadConfig();
+  if (cfg.clientId) {
+    document.getElementById('input-client-id').value = cfg.clientId;
+    document.getElementById('input-sheet-id').value  = cfg.sheetId || '';
+    document.getElementById('input-tab1').value = cfg.tab1 || 'Collezione schede - VOL 1';
+    document.getElementById('input-tab2').value = cfg.tab2 || 'Collezione schede - VOL 2';
+  }
+})();
+</script>
+</body>
+</html>
