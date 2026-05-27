@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalogo Schede Telefoniche</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f2ee; --surface: #fdfcfb; --border: #e0dbd3; --border-strong: #c8c0b4;
+  --text-primary: #1a1714; --text-secondary: #6b6560; --text-muted: #a09890;
+  --accent: #2d4a22; --accent-light: #e8f0e4; --accent-mid: #4a7a38;
+  --amber: #8b5e1a; --amber-light: #f5ead8;
+  --red: #7a2020; --red-light: #f5e0e0;
+  --blue: #1a3a5c; --blue-light: #e0ebf5;
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --font-sans: 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --radius: 6px; --radius-lg: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text-primary); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+
+/* HEADER */
+.header { background: var(--accent); color: #fff; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.header-brand { display: flex; align-items: baseline; gap: 10px; }
+.header-brand h1 { font-family: var(--font-serif); font-size: 20px; font-weight: 400; color: #fff; }
+.header-badge { font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; text-transform: uppercase; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+/* BUTTONS */
+.btn { font-family: var(--font-sans); font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: var(--radius); border: 1.5px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; white-space: nowrap; }
+.btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.btn-outline { background: transparent; color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.3); }
+.btn-outline:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.5); }
+.btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
+.btn-ghost:hover { background: var(--surface); border-color: var(--border-strong); color: var(--text-primary); }
+.btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-accent:hover { background: var(--accent-mid); border-color: var(--accent-mid); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* LAYOUT */
+.layout { display: grid; grid-template-columns: 264px 1fr; min-height: calc(100vh - 60px); }
+
+/* SIDEBAR */
+.sidebar { background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; position: sticky; top: 60px; height: calc(100vh - 60px); padding: 16px 0; }
+.sidebar-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding: 8px 14px 4px; display: block; }
+.sidebar-section { padding: 0 14px 14px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 11px; }
+.stat-card .val { font-family: var(--font-mono); font-size: 17px; font-weight: 500; line-height: 1; margin-bottom: 3px; }
+.stat-card .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-card.green .val { color: var(--accent-mid); }
+.stat-card.amber .val { color: var(--amber); }
+.stat-card.red .val { color: var(--red); }
+.stat-card.blue .val { color: var(--blue); }
+.progress-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 11px 0 4px; }
+.progress-fill { height: 100%; background: var(--accent-mid); border-radius: 3px; transition: width 0.4s ease; }
+.progress-text { font-size: 11px; color: var(--text-secondary); text-align: right; font-family: var(--font-mono); }
+.filter-group { margin-bottom: 9px; }
+.filter-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; }
+.filter-select { width: 100%; padding: 7px 9px; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: var(--font-sans); font-size: 12px; background: var(--bg); color: var(--text-primary); cursor: pointer; }
+.filter-select:focus { outline: none; border-color: var(--accent-mid); }
+.vol-tabs { display: flex; gap: 2px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 3px; }
+.vol-tab { flex: 1; padding: 5px 10px; border-radius: 4px; border: none; background: transparent; font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
+.vol-tab.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+.genere-list { list-style: none; }
+.genere-item { padding: 6px 14px; cursor: pointer; font-size: 12px; color: var(--text-secondary); border-left: 3px solid transparent; transition: all 0.1s; display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+.genere-item:hover { background: var(--bg); color: var(--text-primary); border-left-color: var(--border-strong); }
+.genere-item.active { background: var(--accent-light); color: var(--accent); border-left-color: var(--accent); font-weight: 500; }
+.genere-item .g-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.genere-item .count { font-family: var(--font-mono); font-size: 11px; opacity: 0.6; flex-shrink: 0; }
+
+/* MAIN */
+.main { padding: 22px 26px; }
+.toolbar { display: flex; gap: 9px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+.search-wrap { flex: 1; min-width: 180px; position: relative; }
+.search-wrap svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 14px; height: 14px; pointer-events: none; }
+.search-input { width: 100%; padding: 8px 12px 8px 30px; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: var(--font-sans); font-size: 13px; background: var(--surface); color: var(--text-primary); transition: border-color 0.15s; }
+.search-input:focus { outline: none; border-color: var(--accent-mid); }
+.search-input::placeholder { color: var(--text-muted); }
+.results-info { font-size: 12px; color: var(--text-muted); margin-bottom: 9px; display: flex; justify-content: space-between; }
+
+/* TABLE */
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--bg); border-bottom: 1.5px solid var(--border); }
+th { padding: 8px 11px; text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); cursor: pointer; user-select: none; white-space: nowrap; }
+th:hover { color: var(--text-primary); }
+th .sa { opacity: 0.4; margin-left: 3px; font-size: 9px; }
+th.sorted .sa { opacity: 1; color: var(--accent-mid); }
+td { padding: 7px 11px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #faf8f5; }
+td.mono { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+td.title-cell { font-weight: 500; max-width: 210px; }
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.badge-nuova { background: var(--accent-light); color: var(--accent); }
+.badge-usata { background: var(--blue-light); color: var(--blue); }
+.badge-manca { background: var(--red-light); color: var(--red); }
+.chk { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 4px; font-size: 10px; }
+.chk-yes { background: var(--red-light); color: var(--red); font-weight: 700; }
+.chk-no { color: var(--border-strong); }
+
+/* PAGINATION */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 16px 0 4px; }
+.page-btn { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--surface); font-size: 12px; cursor: pointer; color: var(--text-secondary); transition: all 0.1s; }
+.page-btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* LOADING / EMPTY */
+.loading-state { text-align: center; padding: 80px 32px; color: var(--text-muted); }
+.loading-spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent-mid); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-state p { font-size: 14px; }
+.empty-state { text-align: center; padding: 60px 32px; }
+.empty-state h3 { font-family: var(--font-serif); font-size: 22px; font-weight: 400; margin-bottom: 8px; color: var(--text-secondary); }
+.empty-state p { font-size: 13px; color: var(--text-muted); }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(26,23,20,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.modal { background: var(--surface); border-radius: var(--radius-lg); padding: 28px; max-width: 440px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal h3 { font-family: var(--font-serif); font-size: 20px; font-weight: 400; margin-bottom: 6px; }
+.modal p { font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.pdf-options { display: grid; gap: 7px; }
+.pdf-opt { padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 11px; transition: all 0.15s; }
+.pdf-opt:hover { border-color: var(--accent-mid); background: var(--accent-light); }
+.pdf-opt.selected { border-color: var(--accent); background: var(--accent-light); }
+.pdf-opt-icon { width: 32px; height: 32px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; background: var(--bg); flex-shrink: 0; font-size: 15px; }
+.pdf-opt-text strong { display: block; font-size: 13px; margin-bottom: 1px; }
+.pdf-opt-text span { font-size: 11px; color: var(--text-muted); }
+
+/* TOAST */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--text-primary); color: #fff; padding: 11px 16px; border-radius: var(--radius); font-size: 13px; z-index: 300; animation: slideUp 0.2s ease; max-width: 300px; }
+.toast.error { background: var(--red); }
+.toast.success { background: var(--accent); }
+@keyframes slideUp { from { transform: translateY(8px); opacity: 0; } }
+
+/* ── HAMBURGER (mobile only) ── */
+.btn-hamburger {
+  display: none;
+  background: transparent; border: none; cursor: pointer;
+  padding: 6px; border-radius: var(--radius);
+  color: #fff; align-items: center; justify-content: center;
+}
+.btn-hamburger svg { width: 22px; height: 22px; }
+
+/* ── SIDEBAR OVERLAY (mobile) ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(26,23,20,0.45);
+  z-index: 149;
+}
+.sidebar-overlay.open { display: block; }
+
+/* ── MOBILE STATS BAR ── */
+.mobile-stats {
+  display: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.mobile-stat {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 72px; padding: 0 12px;
+  border-right: 1px solid var(--border);
+}
+.mobile-stat:last-child { border-right: none; }
+.mobile-stat .val { font-family: var(--font-mono); font-size: 16px; font-weight: 500; line-height: 1; }
+.mobile-stat .lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+.mobile-stat.green .val { color: var(--accent-mid); }
+.mobile-stat.red .val { color: var(--red); }
+.mobile-stat.blue .val { color: var(--blue); }
+.mobile-stat.amber .val { color: var(--amber); }
+
+/* ── MOBILE TABLE → CARD LIST ── */
+.card-list { display: flex; flex-direction: column; gap: 8px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+.card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.card-title { font-weight: 600; font-size: 14px; line-height: 1.3; flex: 1; }
+.card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.card-tag {
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 7px; color: var(--text-secondary);
+}
+.card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+.card-checks { display: flex; gap: 6px; }
+.card-check {
+  font-size: 11px; padding: 2px 8px; border-radius: 4px;
+  font-weight: 500; border: 1px solid transparent;
+}
+.card-check.active { background: var(--red-light); color: var(--red); border-color: #f0c0c0; }
+.card-check.inactive { background: var(--bg); color: var(--text-muted); border-color: var(--border); }
+.card-check.na { background: var(--bg); color: var(--text-muted); border-color: var(--border); opacity: 0.5; }
+
+/* ── RESPONSIVE BREAKPOINTS ── */
+@media (max-width: 860px) {
+  /* Header */
+  .header { padding: 0 16px; height: 54px; }
+  .header-brand h1 { font-size: 16px; }
+  .header-badge { display: none; }
+  .btn-hamburger { display: flex; }
+  /* Hide desktop-only header buttons, show only refresh */
+  .btn-outline.desktop-only { display: none; }
+
+  /* Sidebar becomes drawer */
+  .layout { grid-template-columns: 1fr; }
+  .sidebar {
+    position: fixed; top: 0; left: -280px; width: 280px; height: 100vh;
+    z-index: 150; transition: left 0.25s ease;
+    padding-top: 70px; box-shadow: none;
+  }
+  .sidebar.open {
+    left: 0;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+  }
+
+  /* Mobile stats bar */
+  .mobile-stats { display: flex; }
+
+  /* Main */
+  .main { padding: 14px 14px; }
+  .toolbar { gap: 8px; }
+  .search-input { font-size: 16px; } /* prevents iOS zoom */
+
+  /* PDF button: icon only on mobile */
+  #btn-pdf-mancanti .btn-label { display: none; }
+
+  /* Hide desktop table, show cards */
+  .table-wrap { display: none; }
+  .card-list { display: flex; }
+
+  /* Pagination smaller */
+  .page-btn { width: 36px; height: 36px; font-size: 14px; }
+}
+
+@media (min-width: 861px) {
+  .btn-hamburger { display: none; }
+  .mobile-stats { display: none; }
+  .card-list { display: none; }
+  .table-wrap { display: block; }
+  .sidebar-overlay { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    <button class="btn-hamburger" id="btn-hamburger" aria-label="Menu">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <h1>Catalogo Schede Telefoniche</h1>
+    <span class="header-badge" id="status-badge">caricamento…</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline desktop-only" id="btn-pdf">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Esporta PDF
+    </button>
+    <button class="btn btn-outline" id="btn-refresh">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- MOBILE STATS BAR -->
+<div class="mobile-stats">
+  <div class="mobile-stat blue"><div class="val" id="m-stat-tot">—</div><div class="lbl">Totale</div></div>
+  <div class="mobile-stat green"><div class="val" id="m-stat-col">—</div><div class="lbl">In coll.</div></div>
+  <div class="mobile-stat red"><div class="val" id="m-stat-man">—</div><div class="lbl">Mancanti</div></div>
+  <div class="mobile-stat amber"><div class="val" id="m-stat-man-n">—</div><div class="lbl">Manc. N.</div></div>
+</div>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <span class="sidebar-label">Panoramica</span>
+    <div class="sidebar-section">
+      <div class="stat-grid">
+        <div class="stat-card blue"><div class="val" id="stat-tot">—</div><div class="lbl">Totale</div></div>
+        <div class="stat-card green"><div class="val" id="stat-col">—</div><div class="lbl">In coll.</div></div>
+        <div class="stat-card red"><div class="val" id="stat-man">—</div><div class="lbl">Mancanti</div></div>
+        <div class="stat-card amber"><div class="val" id="stat-man-n">—</div><div class="lbl">Manc. N.</div></div>
+      </div>
+      <div class="progress-bar" style="margin-top:12px"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-text" id="progress-text">—</div>
+    </div>
+
+    <span class="sidebar-label">Volume</span>
+    <div class="sidebar-section">
+      <div class="vol-tabs">
+        <button class="vol-tab active" data-vol="all">Tutti</button>
+        <button class="vol-tab" data-vol="1">VOL 1</button>
+        <button class="vol-tab" data-vol="2">VOL 2</button>
+        <button class="vol-tab" data-vol="3">Folder</button>
+      </div>
+    </div>
+
+    <span class="sidebar-label">Filtri</span>
+    <div class="sidebar-section">
+      <div class="filter-group">
+        <div class="filter-label">Stato collezione</div>
+        <select class="filter-select" id="filter-stato">
+          <option value="">Tutti</option>
+          <option value="Nuova">Nuova</option>
+          <option value="Usata">Usata</option>
+          <option value="Manca">Manca</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Mancolista</div>
+        <select class="filter-select" id="filter-manco">
+          <option value="">Tutti</option>
+          <option value="manca">✓ Manca</option>
+          <option value="manca_n">✓ Manca se nuova</option>
+          <option value="manca_cod">✓ Manca se con codici</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Sottogenere</div>
+        <select class="filter-select" id="filter-sotto"><option value="">Tutti</option></select>
+      </div>
+      <button class="btn btn-ghost" id="btn-reset" style="width:100%;justify-content:center;font-size:12px;margin-top:2px;">Azzera filtri</button>
+    </div>
+
+    <span class="sidebar-label">Genere</span>
+    <ul class="genere-list" id="genere-list"></ul>
+  </aside>
+
+  <main class="main">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" class="search-input" id="search-input" placeholder="Cerca per titolo, N. Golden, C&C, note…">
+      </div>
+      <button class="btn btn-ghost" id="btn-pdf-mancanti" style="color:var(--red);border-color:#f0c0c0;background:var(--red-light);">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="btn-label">PDF Mancanti</span>
+      </button>
+    </div>
+    <div id="content-area">
+      <div class="loading-state"><div class="loading-spinner"></div><p>Caricamento dati…</p></div>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+</div>
+
+<!-- PDF MODAL -->
+<div class="modal-overlay" id="pdf-modal" style="display:none">
+  <div class="modal">
+    <h3>Esporta PDF</h3>
+    <p>Scegli il contenuto da esportare.</p>
+    <div class="pdf-options">
+      <div class="pdf-opt selected" data-opt="mancanti">
+        <div class="pdf-opt-icon">📋</div>
+        <div class="pdf-opt-text"><strong>Lista mancanti completa</strong><span>Per genere/sottogenere con 3 colonne Mancolista</span></div>
+      </div>
+      <div class="pdf-opt" data-opt="vista">
+        <div class="pdf-opt-icon">🔍</div>
+        <div class="pdf-opt-text"><strong>Vista corrente filtrata</strong><span>Le schede visibili con i filtri attivi</span></div>
+      </div>
+      <div class="pdf-opt" data-opt="completo">
+        <div class="pdf-opt-icon">📚</div>
+        <div class="pdf-opt-text"><strong>Catalogo completo</strong><span>Tutte le schede VOL 1 + VOL 2</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modal-cancel">Annulla</button>
+      <button class="btn btn-accent" id="modal-confirm">Genera PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const SHEET_ID = '1NyEnuZB7wOOQA3AQPphbaM2wSEaaYkG9iGF8e94u-W0';
+const TABS = {
+  1: 'Collezione schede - VOL 1',
+  2: 'Collezione schede - VOL 2',
+  3: 'Collezione schede - Folder'
+};
+
+// FOLDER columns (vol 3):
+// Genere(0) Sottogenere(1) Golden(2) C&C(3) Titolo(4) Numerazione(5)
+// Schede contenute(6) Dimensioni(7) Note(8) Valore(9)
+// Stato collezione(10) Scheda numerata(11)
+// Mancolista(12) Mancolista(N)(13) Mancolista(Codici)(14) Prezzo acquisto(15)
+
+// Column indices
+// VOL1: Genere(0) Sottogenere(1) Golden(2) C&C(3) Titolo(4) Taglio(5)
+//       Scadenza(6) Produttore(7) Note(8) Tiratura(9)
+//       Val nuova(10) Val usata(11) Stato(12) Magnetizzazione(13)
+//       Mancolista(14) Mancolista(N)(15) Mancolista(Codici)(16)
+//
+// VOL2: Genere(0) Sottogenere(1) Golden(2) C&C(3) Titolo(4) Taglio(5)
+//       Emissione(6) Scadenza(7) Produttore(8) Note(9)
+//       Val nuova(10) Val usata(11) Stato(12) Magnetizzazione(13)
+//       Mancolista(14) Mancolista(N)(15)
+
+let allData = [];
+let filtered = [];
+let currentPage = 1;
+const PAGE_SIZE = 50;
+let sortCol = null, sortDir = 1;
+let activeGenere = null;
+let activeVol = 'all';
+let pdfMode = 'mancanti';
+
+// ── FETCH ─────────────────────────────────────────────────────────────────────
+function fetchTab(vol) {
+  const tab = encodeURIComponent(TABS[vol]);
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${tab}`;
+  return fetch(url)
+    .then(r => r.text())
+    .then(text => {
+      // Google wraps response in google.visualization.Query.setResponse(...)
+      const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+      const rows = json.table.rows;
+      return rows.map(row => row.c.map(cell => {
+        if (!cell) return '';
+        if (cell.v === null || cell.v === undefined) return '';
+        // Boolean
+        if (typeof cell.v === 'boolean') return cell.v;
+        return cell.v.toString().trim();
+      }));
+    });
+}
+
+function boolVal(v) {
+  if (typeof v === 'boolean') return v;
+  const s = (v || '').toString().toUpperCase();
+  return s === 'TRUE' || s === 'VERO' || s === '1';
+}
+
+function normalize(row, vol) {
+  if (vol === 3) {
+    // Folder: struttura diversa
+    return {
+      _vol: 3,
+      _label: 'Folder',
+      genere:       (row[0]  || '').toString().trim(),
+      sottogenere:  (row[1]  || '').toString().trim(),
+      golden:       (row[2]  || '').toString().trim(),
+      cc:           (row[3]  || '').toString().trim(),
+      titolo:       (row[4]  || '').toString().trim(),
+      taglio:       '',           // non presente
+      val_nuova:    (row[9]  || '').toString().trim(), // Valore unico
+      val_usata:    '',           // non presente
+      stato:        (row[10] || '').toString().trim(),
+      note:         (row[8]  || '').toString().trim(),
+      // campi specifici Folder
+      numerazione:  (row[5]  || '').toString().trim(),
+      schede_cont:  (row[6]  || '').toString().trim(),
+      dimensioni:   (row[7]  || '').toString().trim(),
+      scheda_num:   boolVal(row[11]),
+      // mancolista
+      manca:        boolVal(row[12]),
+      manca_n:      boolVal(row[13]),
+      manca_cod:    boolVal(row[14]),
+    };
+  }
+  const noteIdx = vol === 1 ? 8 : 9;
+  return {
+    _vol: vol,
+    _label: `VOL ${vol}`,
+    genere:      (row[0] || '').toString().trim(),
+    sottogenere: (row[1] || '').toString().trim(),
+    golden:      (row[2] || '').toString().trim(),
+    cc:          (row[3] || '').toString().trim(),
+    titolo:      (row[4] || '').toString().trim(),
+    taglio:      (row[5] || '').toString().trim(),
+    val_nuova:   (row[10] || '').toString().trim(),
+    val_usata:   (row[11] || '').toString().trim(),
+    stato:       (row[12] || '').toString().trim(),
+    note:        (row[noteIdx] || '').toString().trim(),
+    numerazione: '', schede_cont: '', dimensioni: '', scheda_num: false,
+    manca:       boolVal(row[14]),
+    manca_n:     boolVal(row[15]),
+    manca_cod:   vol === 1 ? boolVal(row[16]) : false,
+  };
+}
+
+async function loadData() {
+  showLoading();
+  try {
+    const [rows1, rows2, rows3] = await Promise.all([fetchTab(1), fetchTab(2), fetchTab(3)]);
+    allData = [
+      ...rows1.filter(r => r[0]).map(r => normalize(r, 1)),
+      ...rows2.filter(r => r[0]).map(r => normalize(r, 2)),
+      ...rows3.filter(r => r[0]).map(r => normalize(r, 3))
+    ];
+    document.getElementById('status-badge').textContent =
+      `${allData.length.toLocaleString('it')} schede`;
+    initUI();
+    toast(`${allData.length.toLocaleString('it')} schede caricate`, 'success');
+  } catch(e) {
+    console.error(e);
+    document.getElementById('content-area').innerHTML = `
+      <div class="empty-state">
+        <h3>Errore di caricamento</h3>
+        <p>Verifica che il foglio sia pubblico in sola lettura.<br><small style="color:var(--text-muted)">${e.message}</small></p>
+      </div>`;
+    document.getElementById('status-badge').textContent = 'errore';
+    toast('Errore nel caricamento dati', 'error');
+  }
+}
+
+function showLoading(msg = 'Caricamento dati…') {
+  document.getElementById('content-area').innerHTML =
+    `<div class="loading-state"><div class="loading-spinner"></div><p>${msg}</p></div>`;
+}
+
+function toast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+function initUI() {
+  buildGenereList();
+  buildSottogenereFilter();
+  updateStats();
+  applyFilters();
+}
+
+function getVolBase() {
+  if (activeVol === '1') return allData.filter(r => r._vol === 1);
+  if (activeVol === '2') return allData.filter(r => r._vol === 2);
+  if (activeVol === '3') return allData.filter(r => r._vol === 3);
+  return allData;
+}
+
+function buildGenereList() {
+  const base = getVolBase();
+  const counts = {};
+  base.forEach(r => { const g = r.genere || '(—)'; counts[g] = (counts[g] || 0) + 1; });
+  const ul = document.getElementById('genere-list');
+  ul.innerHTML = `<li class="genere-item active" data-g=""><span class="g-name">(Tutti)</span><span class="count">${base.length}</span></li>`;
+  Object.entries(counts).sort((a,b) => a[0].localeCompare(b[0],'it')).forEach(([g,c]) => {
+    const li = document.createElement('li');
+    li.className = 'genere-item'; li.dataset.g = g;
+    li.innerHTML = `<span class="g-name">${g}</span><span class="count">${c}</span>`;
+    ul.appendChild(li);
+  });
+  ul.querySelectorAll('.genere-item').forEach(li => {
+    li.addEventListener('click', () => {
+      ul.querySelectorAll('.genere-item').forEach(x => x.classList.remove('active'));
+      li.classList.add('active');
+      activeGenere = li.dataset.g || null;
+      buildSottogenereFilter();
+      applyFilters();
+    });
+  });
+}
+
+function buildSottogenereFilter() {
+  const sel = document.getElementById('filter-sotto');
+  const prev = sel.value;
+  const base = getVolBase().filter(r => !activeGenere || r.genere === activeGenere);
+  const sottos = [...new Set(base.map(r => r.sottogenere).filter(Boolean))].sort((a,b) => a.localeCompare(b,'it'));
+  sel.innerHTML = '<option value="">Tutti</option>';
+  sottos.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
+  if (sottos.includes(prev)) sel.value = prev;
+}
+
+function updateStats() {
+  const base = getVolBase();
+  const tot   = base.length;
+  const col   = base.filter(r => r.stato === 'Nuova' || r.stato === 'Usata').length;
+  const man   = base.filter(r => r.manca).length;
+  const man_n = base.filter(r => r.manca_n).length;
+  // Desktop sidebar
+  document.getElementById('stat-tot').textContent   = tot.toLocaleString('it');
+  document.getElementById('stat-col').textContent   = col.toLocaleString('it');
+  document.getElementById('stat-man').textContent   = man.toLocaleString('it');
+  document.getElementById('stat-man-n').textContent = man_n.toLocaleString('it');
+  // Mobile stats bar
+  document.getElementById('m-stat-tot').textContent   = tot.toLocaleString('it');
+  document.getElementById('m-stat-col').textContent   = col.toLocaleString('it');
+  document.getElementById('m-stat-man').textContent   = man.toLocaleString('it');
+  document.getElementById('m-stat-man-n').textContent = man_n.toLocaleString('it');
+  const pct = tot > 0 ? Math.round(col / tot * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = pct + '% completato';
+}
+
+function applyFilters() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const stato  = document.getElementById('filter-stato').value;
+  const manco  = document.getElementById('filter-manco').value;
+  const sotto  = document.getElementById('filter-sotto').value;
+
+  filtered = getVolBase().filter(r => {
+    if (activeGenere && r.genere !== activeGenere) return false;
+    if (sotto && r.sottogenere !== sotto) return false;
+    if (stato && r.stato !== stato) return false;
+    if (manco === 'manca'     && !r.manca)     return false;
+    if (manco === 'manca_n'   && !r.manca_n)   return false;
+    if (manco === 'manca_cod' && !r.manca_cod) return false;
+    if (search) {
+      const hay = [r.titolo, r.golden, r.cc, r.note, r.sottogenere].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  if (sortCol) {
+    filtered.sort((a, b) => {
+      const va = a[sortCol] || '', vb = b[sortCol] || '';
+      const na = parseFloat(va), nb = parseFloat(vb);
+      if (!isNaN(na) && !isNaN(nb)) return (na - nb) * sortDir;
+      return va.localeCompare(vb, 'it') * sortDir;
+    });
+  }
+  currentPage = 1;
+  renderTable();
+}
+
+// ── TABLE ─────────────────────────────────────────────────────────────────────
+const COLS_DEFAULT = [
+  { label:'Foglio',      key:'_label',      cls:'mono',       w:'68px' },
+  { label:'N. Golden',   key:'golden',      cls:'mono',       w:'78px' },
+  { label:'C&C',         key:'cc',          cls:'mono',       w:'66px' },
+  { label:'Titolo',      key:'titolo',      cls:'title-cell', w:''     },
+  { label:'Genere',      key:'genere',      cls:'',           w:'105px'},
+  { label:'Sottogenere', key:'sottogenere', cls:'',           w:'115px'},
+  { label:'Stato',       key:'stato',       cls:'',           w:'86px' },
+  { label:'Manca',       key:'manca',       cls:'',           w:'58px' },
+  { label:'Manca N.',    key:'manca_n',     cls:'',           w:'68px' },
+  { label:'Manca Cod.',  key:'manca_cod',   cls:'',           w:'74px' },
+  { label:'Valore',      key:'val_nuova',   cls:'mono',       w:'78px' },
+];
+const COLS_FOLDER = [
+  { label:'Sottogenere', key:'sottogenere', cls:'',           w:'120px'},
+  { label:'N. Golden',   key:'golden',      cls:'mono',       w:'78px' },
+  { label:'C&C',         key:'cc',          cls:'mono',       w:'66px' },
+  { label:'Titolo',      key:'titolo',      cls:'title-cell', w:''     },
+  { label:'Genere',      key:'genere',      cls:'',           w:'105px'},
+  { label:'Numerazione', key:'numerazione', cls:'mono',       w:'90px' },
+  { label:'Stato',       key:'stato',       cls:'',           w:'86px' },
+  { label:'Manca',       key:'manca',       cls:'',           w:'58px' },
+  { label:'Manca N.',    key:'manca_n',     cls:'',           w:'68px' },
+  { label:'Manca Cod.',  key:'manca_cod',   cls:'',           w:'74px' },
+  { label:'Valore',      key:'val_nuova',   cls:'mono',       w:'78px' },
+];
+function getCols() { return activeVol === '3' ? COLS_FOLDER : COLS_DEFAULT; }
+
+function renderTable() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = filtered.slice(start, start + PAGE_SIZE);
+  const ca    = document.getElementById('content-area');
+  ca.innerHTML = '';
+
+  if (!filtered.length) {
+    ca.innerHTML = '<div class="empty-state"><h3>Nessun risultato</h3><p>Modifica i filtri o la ricerca.</p></div>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  const COLS = getCols();
+  const info = document.createElement('div');
+  info.className = 'results-info';
+  info.innerHTML = `<span>${filtered.length.toLocaleString('it')} schede trovate</span><span>${start+1}–${Math.min(start+PAGE_SIZE,filtered.length)} di ${filtered.length}</span>`;
+  ca.appendChild(info);
+
+  const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+  const table = document.createElement('table');
+
+  // thead
+  const thead = document.createElement('thead');
+  const htr = document.createElement('tr');
+  COLS.forEach(c => {
+    const th = document.createElement('th');
+    th.className = sortCol === c.key ? 'sorted' : '';
+    if (c.w) th.style.width = c.w;
+    th.innerHTML = c.label + `<span class="sa">${sortCol===c.key?(sortDir===1?'↑':'↓'):'↕'}</span>`;
+    th.addEventListener('click', () => {
+      if (sortCol === c.key) sortDir *= -1; else { sortCol = c.key; sortDir = 1; }
+      applyFilters();
+    });
+    htr.appendChild(th);
+  });
+  thead.appendChild(htr); table.appendChild(thead);
+
+  // tbody
+  const tbody = document.createElement('tbody');
+  page.forEach(row => {
+    const tr = document.createElement('tr');
+    COLS.forEach(c => {
+      const td = document.createElement('td'); td.className = c.cls;
+      if (c.key === 'stato') {
+        const map = { Nuova:'badge-nuova', Usata:'badge-usata', Manca:'badge-manca' };
+        td.innerHTML = `<span class="badge ${map[row.stato]||''}">${row.stato||'—'}</span>`;
+      } else if (c.key === '_vol') {
+        td.innerHTML = `<span style="font-size:11px;opacity:0.55">VOL ${row._vol}</span>`;
+      } else if (c.key === 'manca' || c.key === 'manca_n' || c.key === 'manca_cod') {
+        // manca_cod: disponibile su VOL 1 e Folder (vol 3), non su VOL 2
+        if (c.key === 'manca_cod' && row._vol === 2) {
+          td.innerHTML = `<span class="chk chk-no" style="opacity:0.35">—</span>`;
+        } else {
+          td.innerHTML = row[c.key]
+            ? `<span class="chk chk-yes">✓</span>`
+            : `<span class="chk chk-no">·</span>`;
+        }
+        td.style.textAlign = 'center';
+      } else {
+        td.textContent = row[c.key] || '—';
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table); ca.appendChild(wrap);
+  // Mobile cards
+  ca.appendChild(renderCards(page));
+  renderPagination(filtered.length);
+}
+
+function renderPagination(total) {
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const pag = document.getElementById('pagination');
+  pag.innerHTML = '';
+  if (pages <= 1) return;
+  const mk = (label, page, disabled, active) => {
+    const b = document.createElement('button');
+    b.className = 'page-btn' + (active ? ' active' : '');
+    b.textContent = label; b.disabled = disabled;
+    if (!disabled) b.addEventListener('click', () => { currentPage = page; renderTable(); window.scrollTo(0,0); });
+    return b;
+  };
+  pag.appendChild(mk('‹', currentPage-1, currentPage===1, false));
+  const range = [];
+  for (let i=1; i<=pages; i++) {
+    if (i===1||i===pages||Math.abs(i-currentPage)<=2) range.push(i);
+    else if (range[range.length-1]!=='…') range.push('…');
+  }
+  range.forEach(p => {
+    if (p==='…') { const s=document.createElement('span'); s.textContent='…'; s.style.cssText='padding:0 4px;color:var(--text-muted)'; pag.appendChild(s); }
+    else pag.appendChild(mk(p,p,false,p===currentPage));
+  });
+  pag.appendChild(mk('›', currentPage+1, currentPage===pages, false));
+}
+
+// ── PDF MANCANTI ──────────────────────────────────────────────────────────────
+function renderCards(page) {
+  const list = document.createElement('div');
+  list.className = 'card-list';
+  const stateMap = { Nuova:'badge-nuova', Usata:'badge-usata', Manca:'badge-manca' };
+
+  page.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const isFolder = r._vol === 3;
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-title">${r.titolo || '—'}</div>
+        <span class="badge ${stateMap[r.stato]||''}">${r.stato||'—'}</span>
+      </div>
+      <div class="card-meta">
+        ${r.golden ? `<span class="card-tag">N. ${r.golden}</span>` : ''}
+        ${r.cc     ? `<span class="card-tag">C&C ${r.cc}</span>`   : ''}
+        ${r.sottogenere ? `<span class="card-tag">${r.sottogenere}</span>` : ''}
+        ${isFolder && r.numerazione ? `<span class="card-tag">${r.numerazione}</span>` : ''}
+        <span class="card-tag" style="opacity:0.6">${r._label}</span>
+      </div>
+      <div class="card-footer">
+        <div class="card-checks">
+          <span class="card-check ${r.manca ? 'active' : 'inactive'}">Manca${r.manca ? ' ✓' : ''}</span>
+          <span class="card-check ${r.manca_n ? 'active' : 'inactive'}">N.${r.manca_n ? ' ✓' : ''}</span>
+          <span class="card-check ${r._vol===2 ? 'na' : r.manca_cod ? 'active' : 'inactive'}">${r._vol===2 ? 'Cod. —' : 'Cod.' + (r.manca_cod ? ' ✓' : '')}</span>
+        </div>
+        ${r.val_nuova ? `<span style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)">€ ${r.val_nuova}</span>` : ''}
+      </div>`;
+    list.appendChild(card);
+  });
+  return list;
+}
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const PW = doc.internal.pageSize.getWidth();
+  const PH = doc.internal.pageSize.getHeight();
+
+  const groups = {};
+  rows.forEach(r => {
+    const g = r.genere || '(—)', s = r.sottogenere || '(—)';
+    if (!groups[g]) groups[g] = {};
+    if (!groups[g][s]) groups[g][s] = [];
+    groups[g][s].push(r);
+  });
+
+  let y = 0, pageNum = 1;
+
+  function drawHeader() {
+    doc.setFillColor(45,74,34); doc.rect(0,0,PW,20,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.text('Catalogo Schede Telefoniche', 12, 9);
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    doc.text('Lista schede mancanti', 12, 15);
+    doc.text(`${new Date().toLocaleDateString('it-IT')} — ${rows.length} schede`, PW-12, 15, {align:'right'});
+    y = 26;
+  }
+
+  function drawFooter() {
+    doc.setFontSize(7); doc.setTextColor(160,160,160); doc.setFont('helvetica','normal');
+    doc.text(`Pag. ${pageNum}`, PW-12, PH-6, {align:'right'});
+  }
+
+  function checkBreak(needed=6) {
+    if (y + needed > PH - 14) { drawFooter(); doc.addPage(); pageNum++; drawHeader(); }
+  }
+
+  drawHeader();
+
+  // Legenda
+  doc.setFillColor(245,242,238); doc.rect(12,y,PW-24,10,'F');
+  doc.setDrawColor(200,195,190); doc.rect(12,y,PW-24,10,'S');
+  doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(60,60,60);
+  doc.text('Legenda:', 16, y+4);
+  doc.setFont('helvetica','normal');
+  doc.text('Manca = scheda assente', 38, y+4);
+  doc.text('N = manca solo se nuova', 95, y+4);
+  doc.text('Cod = manca solo se con codici (VOL 1)', 155, y+4);
+  doc.text('— = colonna non disponibile per VOL 2', 16, y+8.5);
+  y += 15;
+
+  const X = { golden:12, titolo:40, manca:138, manca_n:154, manca_cod:170, vol:188 };
+  const TW = PW - 24;
+
+  function drawTableHeader() {
+    checkBreak(8);
+    doc.setFillColor(74,122,56); doc.rect(X.golden,y,TW,7,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+    doc.text('N. Golden', X.golden+2, y+4.5);
+    doc.text('Titolo', X.titolo+2, y+4.5);
+    doc.text('Manca', X.manca, y+4.5, {align:'center'});
+    doc.text('N.', X.manca_n, y+4.5, {align:'center'});
+    doc.text('Cod.', X.manca_cod, y+4.5, {align:'center'});
+    doc.text('VOL', X.vol, y+4.5, {align:'center'});
+    y += 7;
+  }
+
+  Object.keys(groups).sort().forEach(genere => {
+    checkBreak(12);
+    doc.setFillColor(30,48,20); doc.rect(X.golden,y,TW,8,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text(genere.toUpperCase(), X.golden+3, y+5.5);
+    y += 8;
+
+    Object.keys(groups[genere]).sort().forEach(sotto => {
+      const schede = groups[genere][sotto];
+      checkBreak(18);
+      doc.setFillColor(220,235,215); doc.rect(X.golden,y,TW,6.5,'F');
+      doc.setTextColor(45,74,22); doc.setFontSize(8); doc.setFont('helvetica','bold');
+      doc.text(sotto, X.golden+3, y+4.5);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(100,130,90);
+      doc.text(`(${schede.length})`, PW-14, y+4.5, {align:'right'});
+      y += 6.5;
+
+      drawTableHeader();
+
+      schede.forEach((r, idx) => {
+        checkBreak(6);
+        const RH = 5.5;
+        if (idx % 2 === 1) { doc.setFillColor(248,245,240); doc.rect(X.golden,y,TW,RH,'F'); }
+
+        doc.setTextColor(30,27,24); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+        doc.text(r.golden || '—', X.golden+2, y+3.8);
+
+        let tit = r.titolo || '—';
+        const maxW = X.manca - X.titolo - 6;
+        while (doc.getTextWidth(tit+'…') > maxW && tit.length > 1) tit = tit.slice(0,-1);
+        if (tit !== (r.titolo||'—')) tit += '…';
+        doc.text(tit, X.titolo+2, y+3.8);
+
+        const chk = (x, val, na) => {
+          if (na) { doc.setTextColor(190,185,180); doc.setFontSize(7); doc.text('—',x,y+3.8,{align:'center'}); }
+          else if (val) { doc.setTextColor(122,32,32); doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.text('✓',x,y+4.2,{align:'center'}); }
+          else { doc.setTextColor(200,195,190); doc.setFontSize(8); doc.text('·',x,y+3.8,{align:'center'}); }
+          doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(30,27,24);
+        };
+
+        chk(X.manca,     r.manca,     false);
+        chk(X.manca_n,   r.manca_n,   false);
+        chk(X.manca_cod, r.manca_cod, r._vol===2);  // VOL2 no codici
+
+        doc.setFontSize(7); doc.setTextColor(130,125,120);
+        doc.text(r._vol.toString(), X.vol, y+3.8, {align:'center'});
+
+        doc.setDrawColor(230,225,218); doc.setLineWidth(0.2);
+        doc.line(X.golden, y+RH, X.golden+TW, y+RH);
+        y += RH;
+      });
+      y += 4;
+    });
+    y += 3;
+  });
+
+  drawFooter();
+  doc.save(`mancolista_${new Date().toISOString().slice(0,10)}.pdf`);
+  toast('PDF generato', 'success');
+}
+
+function generateGenericPDF(rows, title) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const PW = doc.internal.pageSize.getWidth();
+
+  doc.setFillColor(45,74,34); doc.rect(0,0,PW,20,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(13); doc.setFont('helvetica','bold');
+  doc.text('Catalogo Schede Telefoniche', 12, 9);
+  doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+  doc.text(title, 12, 15);
+  doc.text(`${new Date().toLocaleDateString('it-IT')} — ${rows.length} schede`, PW-12, 15, {align:'right'});
+
+  doc.autoTable({
+    startY: 24,
+    head: [['VOL','N. Golden','C&C','Titolo','Genere','Sottogenere','Stato','Manca','N.','Cod.','Val. Nuova']],
+    body: rows.map(r => [
+      r._label, r.golden, r.cc, r.titolo, r.genere, r.sottogenere, r.stato,
+      r.manca?'✓':'·', r.manca_n?'✓':'·',
+      r._vol===2 ? '—' : (r.manca_cod?'✓':'·'),
+      r.val_nuova||'—'
+    ]),
+    styles: { fontSize:7.5, cellPadding:2, textColor:[30,27,24] },
+    headStyles: { fillColor:[74,122,56], textColor:255, fontStyle:'bold' },
+    alternateRowStyles: { fillColor:[245,242,238] },
+    columnStyles: {
+      0:{cellWidth:10}, 1:{cellWidth:20}, 2:{cellWidth:18},
+      3:{cellWidth:62}, 4:{cellWidth:28}, 5:{cellWidth:32},
+      6:{cellWidth:16}, 7:{cellWidth:13,halign:'center'}, 8:{cellWidth:12,halign:'center'},
+      9:{cellWidth:13,halign:'center'}, 10:{cellWidth:18}
+    },
+    margin:{left:12,right:12},
+    didDrawPage: () => {
+      const pg = doc.internal.getCurrentPageInfo().pageNumber;
+      doc.setFontSize(7); doc.setTextColor(150,150,150);
+      doc.text(`Pag. ${pg}`, PW-12, doc.internal.pageSize.getHeight()-6, {align:'right'});
+    }
+  });
+  doc.save(`schede_${title.replace(/[^a-z0-9]/gi,'_').toLowerCase()}_${new Date().toISOString().slice(0,10)}.pdf`);
+  toast('PDF generato', 'success');
+}
+
+// ── EVENTI ────────────────────────────────────────────────────────────────────
+document.getElementById('btn-pdf-mancanti').addEventListener('click', () => {
+  const rows = allData.filter(r => r.manca || r.manca_n || r.manca_cod);
+  if (!rows.length) { toast('Nessuna scheda in mancolista', 'error'); return; }
+  generateMancantiPDF(rows);
+});
+
+document.getElementById('btn-pdf').addEventListener('click', () => {
+  document.getElementById('pdf-modal').style.display = 'flex';
+});
+document.getElementById('modal-cancel').addEventListener('click', () => {
+  document.getElementById('pdf-modal').style.display = 'none';
+});
+document.querySelectorAll('.pdf-opt').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.pdf-opt').forEach(x => x.classList.remove('selected'));
+    el.classList.add('selected'); pdfMode = el.dataset.opt;
+  });
+});
+document.getElementById('modal-confirm').addEventListener('click', () => {
+  document.getElementById('pdf-modal').style.display = 'none';
+  if (pdfMode === 'mancanti') {
+    const rows = allData.filter(r => r.manca || r.manca_n || r.manca_cod);
+    if (!rows.length) { toast('Nessuna scheda in mancolista', 'error'); return; }
+    generateMancantiPDF(rows);
+  } else if (pdfMode === 'vista') {
+    if (!filtered.length) { toast('Nessuna scheda nella vista corrente', 'error'); return; }
+    generateGenericPDF(filtered, 'Vista filtrata corrente');
+  } else {
+    generateGenericPDF(allData, 'Catalogo completo');
+  }
+});
+
+document.querySelectorAll('.vol-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.vol-tab').forEach(x => x.classList.remove('active'));
+    btn.classList.add('active'); activeVol = btn.dataset.vol;
+    activeGenere = null;
+    buildGenereList(); buildSottogenereFilter(); updateStats(); applyFilters();
+  });
+});
+
+document.getElementById('search-input').addEventListener('input', applyFilters);
+document.getElementById('filter-stato').addEventListener('change', applyFilters);
+document.getElementById('filter-manco').addEventListener('change', applyFilters);
+document.getElementById('filter-sotto').addEventListener('change', applyFilters);
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-stato').value = '';
+  document.getElementById('filter-manco').value = '';
+  document.getElementById('filter-sotto').value = '';
+  activeGenere = null; sortCol = null; sortDir = 1;
+  document.querySelectorAll('.genere-item').forEach((li,i) => li.classList.toggle('active',i===0));
+  buildSottogenereFilter(); applyFilters();
+});
+
+// ── HAMBURGER ─────────────────────────────────────────────────────────────────
+function openSidebar() {
+  document.getElementById('sidebar-overlay').classList.add('open');
+  document.querySelector('.sidebar').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  document.getElementById('sidebar-overlay').classList.remove('open');
+  document.querySelector('.sidebar').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('btn-hamburger').addEventListener('click', openSidebar);
+document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
+// Close sidebar when a filter or genere is tapped on mobile
+document.querySelector('.sidebar').addEventListener('click', e => {
+  if (window.innerWidth <= 860 &&
+      (e.target.closest('.genere-item') || e.target.closest('.vol-tab') || e.target.closest('#btn-reset'))) {
+    setTimeout(closeSidebar, 120);
+  }
+});
+
+// Avvio
+loadData();
+</script>
+</body>
+</html>
